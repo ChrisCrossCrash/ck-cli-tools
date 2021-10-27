@@ -1,6 +1,7 @@
 # CK-CLI Tools
 
-Several tools that can be added to your `PATH` that make your life easier.
+Several tools that can be added to your `PATH` to make your life easier.
 
-### `pretty-path`
+## `prettypath`
+
 Prints the `$PATH` variable in a human-readable way.
