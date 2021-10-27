@@ -6,7 +6,7 @@ import re
 import sys
 
 
-def pretty_path(search_pattern=None, ignore_pattern=None):
+def prettypath(search_pattern=None, ignore_pattern=None):
     folders = os.environ['PATH'].split(';' if sys.platform == 'win32' else ':')
 
     # Windows directory and file names are case-insensitive.
@@ -30,4 +30,4 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--search', help='Only show path directories matching this pattern')
     parser.add_argument('-i', '--ignore', help='Ignore path directories matching this pattern')
     args = parser.parse_args()
-    pretty_path(search_pattern=args.search, ignore_pattern=args.ignore)
+    prettypath(search_pattern=args.search, ignore_pattern=args.ignore)
