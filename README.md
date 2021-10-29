@@ -37,7 +37,7 @@ ck@Laptop-CK:~$
 
 ## `schedcom`
 
-Executes a command after a certain amount of time, optionally sending a telegram message after it completes.
+Executes a command after a certain amount of time, optionally sending a Telegram message after it completes.
 
 ```
 ck@laptop:~$ schedcom --help

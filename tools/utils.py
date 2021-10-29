@@ -1,4 +1,4 @@
-def load_env_file(filename: str = '.env') -> dict:
+def load_env_file(filename: str) -> dict:
     """Load environmental variables from a `.env` file."""
     result = {}
     with open(filename) as f:

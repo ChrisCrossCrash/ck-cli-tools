@@ -10,8 +10,9 @@ import json
 from urllib.request import urlopen
 from urllib.request import Request
 from utils import load_env_file
+import os
 
-env = load_env_file()
+env = load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 TELEGRAM_TOKEN = env['TELEGRAM_TOKEN']
 TELEGRAM_CHAT_ID = env['TELEGRAM_CHAT_ID']
 
