@@ -1,16 +1,12 @@
-"""
-# How to make Telegram API requests
-# https://core.telegram.org/bots/api#making-requests
-
-For this to work, you'll need to create a `.env` file in the same directory
-as this module with the variables TELEGRAM_TOKEN and TELEGRAM_CHAT_ID.
-"""
-
 import json
 from urllib.request import urlopen
 from urllib.request import Request
 from utils import load_env_file
 import os
+
+
+# Telegram Bot API Documentation
+# https://core.telegram.org/bots/api
 
 
 class Bot:
@@ -33,8 +29,8 @@ class Bot:
         post_data = {
             'chat_id': self.chat_id,
             'text': text,
-            # FIXME: Find out why MarkdownV2 gives 400 Not Found errors.
-            # 'parse_mode': 'MarkdownV2'
+            # https://core.telegram.org/bots/api#html-style
+            # 'parse_mode': 'HTML'
         }
 
         post_data_encoded = json.dumps(post_data).encode('ascii')
