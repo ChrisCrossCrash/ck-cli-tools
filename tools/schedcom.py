@@ -6,6 +6,7 @@ import re
 import time
 import subprocess
 import os
+from typing import Optional, Union
 
 from utils import load_env_file
 from ckcyberbot import Bot
@@ -52,11 +53,11 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    delay = 0
+    delay: Union[int, float] = 0
 
     if args.at:
         at_str: str = args.at
-        at_datetime = None
+        at_datetime: Optional[datetime.datetime] = None
         try:
             at_datetime = datetime.datetime.fromisoformat(at_str)
         except ValueError:

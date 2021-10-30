@@ -6,19 +6,19 @@ import re
 import sys
 
 
-def prettypath(search_pattern=None, ignore_pattern=None):
+def prettypath(search_pattern: str = None, ignore_pattern: str = None):
     folders = os.environ['PATH'].split(';' if sys.platform == 'win32' else ':')
 
     # Windows directory and file names are case-insensitive.
     case_insensitive = False if sys.platform.startswith('linux') else True
 
     if search_pattern:
-        pattern = re.compile(search_pattern, re.IGNORECASE if case_insensitive else 0)
-        folders = [folder for folder in folders if pattern.search(folder)]
+        compiled_pattern = re.compile(search_pattern, re.IGNORECASE if case_insensitive else 0)
+        folders = [folder for folder in folders if compiled_pattern.search(folder)]
 
     if ignore_pattern:
-        pattern = re.compile(ignore_pattern, re.IGNORECASE if case_insensitive else 0)
-        folders = [folder for folder in folders if not pattern.search(folder)]
+        compiled_pattern = re.compile(ignore_pattern, re.IGNORECASE if case_insensitive else 0)
+        folders = [folder for folder in folders if not compiled_pattern.search(folder)]
 
     for folder in folders:
         if folder:

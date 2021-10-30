@@ -37,11 +37,11 @@ class Bot:
             # 'parse_mode': 'MarkdownV2'
         }
 
-        post_data = json.dumps(post_data).encode('ascii')
+        post_data_encoded = json.dumps(post_data).encode('ascii')
 
         request = Request(
             self.get_url('sendMessage'),
-            post_data,
+            post_data_encoded,
             {'Content-Type': 'application/json'},
         )
 
