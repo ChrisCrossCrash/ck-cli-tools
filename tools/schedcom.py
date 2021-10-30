@@ -10,7 +10,7 @@ import ckcyberbot
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Schedule future tasks')
+    parser = argparse.ArgumentParser(description='Schedule a task and/or get notified when it finishes')
     parser.add_argument(
         'command',
         help='The command to be scheduled. Surround the command with quotation marks if it contains spaces.'
@@ -24,7 +24,7 @@ def parse_args():
     )
 
     # `--at` and `--in` are mutually exclusive. They can't both be used in the same command.
-    delay_options = parser.add_mutually_exclusive_group(required=True)
+    delay_options = parser.add_mutually_exclusive_group()
     delay_options.add_argument(
         '-a',
         '--at',
@@ -43,6 +43,9 @@ def parse_args():
 
 
 if __name__ == '__main__':
+    # FIXME: Not having a `.env` file with the required variables
+    #  shouldn't throw an error if the user isn't using the `--notify` option.
+
     args = parse_args()
 
     delay = 0
@@ -64,7 +67,7 @@ if __name__ == '__main__':
             print(f'Error: {at_datetime} is not a future time.')
             exit(2)
 
-    else:
+    elif args.in_:
         in_str: str = args.in_
 
         match = re.match(r'^(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$', in_str)
@@ -84,10 +87,15 @@ if __name__ == '__main__':
 
         delay = td.total_seconds()
 
-    delay = int(delay)
+    if not delay and not args.notify:
+        print('Error: You tried executing a command without a delay or a notification')
+        exit(4)
 
-    print(f'Executing {args.command} in {delay} s.')
-    time.sleep(delay)
+    if delay:
+        delay = int(delay)
+        print(f'Executing {args.command} in {delay} s.')
+        time.sleep(delay)
+
     print(f'executing...')
     completed_process = subprocess.run(args.command, shell=True)
 
