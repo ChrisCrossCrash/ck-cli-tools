@@ -5,8 +5,15 @@ import datetime
 import re
 import time
 import subprocess
+import os
 
-import ckcyberbot
+from utils import load_env_file
+from ckcyberbot import Bot
+
+
+def create_bot():
+    env = load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+    return Bot(env['TELEGRAM_TOKEN'], env['TELEGRAM_CHAT_ID'])
 
 
 def parse_args():
@@ -43,9 +50,6 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    # FIXME: Not having a `.env` file with the required variables
-    #  shouldn't throw an error if the user isn't using the `--notify` option.
-
     args = parse_args()
 
     delay = 0
@@ -101,12 +105,16 @@ if __name__ == '__main__':
 
     # TODO: Display the output for the command in the Telegram message.
     if completed_process.returncode:
-        success_msg = f'"{args.command}" did not run successfully.'
-        print(success_msg)
-        if args.notify:
-            ckcyberbot.send_message(success_msg)
-    else:
-        fail_msg = f'"{args.command}" executed successfully!'
+        fail_msg = f'"{args.command}" did not run successfully.'
         print(fail_msg)
         if args.notify:
-            ckcyberbot.send_message(fail_msg)
+            # Create the bot here so that there isn't an error if the
+            # user isn't using `--notify` and  hasn't configured a `.env` file
+            bot = create_bot()
+            bot.send_message(fail_msg)
+    else:
+        success_msg = f'"{args.command}" executed successfully!'
+        print(success_msg)
+        if args.notify:
+            bot = create_bot()
+            bot.send_message(success_msg)
