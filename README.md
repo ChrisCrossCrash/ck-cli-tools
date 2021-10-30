@@ -58,5 +58,5 @@ ck@laptop:~$ schedcom --in 3s ls
 Executing ls in 3 s.
 executing...
 bin  documents  downloads
-"dir" executed successfully!
+"ls" executed successfully!
 ```
