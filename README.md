@@ -37,13 +37,13 @@ ck@Laptop-CK:~$
 
 ## `schedcom`
 
-Executes a command after a certain amount of time, optionally sending a Telegram message after it completes.
+Schedule a task and/or get notified when it finishes.
 
 ```
 ck@laptop:~$ schedcom --help
 usage: schedcom.py [-h] [-n] (-a STARTTIME | -i DELAY) command
 
-Schedule future tasks
+Schedule a task and/or get notified when it finishes
 
 positional arguments:
   command               The command to be scheduled. Surround the command with quotation marks if it contains spaces.
