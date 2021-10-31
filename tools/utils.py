@@ -6,8 +6,8 @@ def load_env_file(filename: str) -> Dict[str, str]:
     result = {}
     with open(filename) as f:
         for line in f.readlines():
-            if line.startswith('#'):
-                # Skip this line. It's a comment.
+            if line.startswith('#') or not line.strip():
+                # Skip this line. It's a comment or an empty string.
                 continue
             # Remove the end of line character
             line = line.rstrip()

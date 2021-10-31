@@ -1,7 +1,8 @@
 import unittest
+from unittest.mock import patch, mock_open, MagicMock
 from typing import Callable, cast
 
-from tools.utils import yes_or_no
+from tools.utils import yes_or_no, load_env_file
 
 
 class TestError(Exception):
@@ -113,6 +114,30 @@ class TestOther(unittest.TestCase):
         # The second time `gen.__next__()` is called will yield `n`,
         # which will cause `yes_or_no()` to return False.
         self.assertFalse(yes_or_no('Sky is blue?', input_func=lambda _: gen.__next__()))
+
+
+class TestLoadEnvFile(unittest.TestCase):
+    valid_env_str_data = 'TELEGRAM_TOKEN=0123456789:ThisIsAFakeTelegramToken01234567890\nTELEGRAM_CHAT_ID=0123456789'
+    valid_env_dict_data = {
+        'TELEGRAM_TOKEN': '0123456789:ThisIsAFakeTelegramToken01234567890',
+        'TELEGRAM_CHAT_ID': '0123456789'
+    }
+
+    @patch('builtins.open', new_callable=mock_open, read_data=valid_env_str_data)
+    def test_loads_env_data(self, _: MagicMock):
+        self.assertEqual(load_env_file('.env'), self.valid_env_dict_data)
+
+    @patch('builtins.open', new_callable=mock_open, read_data='# comment\n' + valid_env_str_data)
+    def test_ignores_comments(self, _: MagicMock):
+        self.assertEqual(load_env_file('.env'), self.valid_env_dict_data)
+
+    @patch('builtins.open', new_callable=mock_open, read_data=valid_env_str_data.replace('\n', '\n\n'))
+    def test_ignores_empty_line(self, _: MagicMock):
+        self.assertEqual(load_env_file('.env'), self.valid_env_dict_data)
+
+    @patch('builtins.open', new_callable=mock_open, read_data=valid_env_str_data.replace('\n', '\n \t\n'))
+    def test_ignores_whitespace_line(self, _: MagicMock):
+        self.assertEqual(load_env_file('.env'), self.valid_env_dict_data)
 
 
 if __name__ == '__main__':
