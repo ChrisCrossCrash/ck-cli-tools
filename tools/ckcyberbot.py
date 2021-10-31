@@ -3,7 +3,7 @@
 import json
 from urllib.request import urlopen, Request
 import argparse
-from typing import Dict
+from typing import Dict, List
 from secrets import randbelow
 from http.client import HTTPResponse
 
@@ -27,8 +27,32 @@ class Bot:
         with urlopen(self.get_url('getMe')) as response:
             return json.load(response)
 
-    def get_updates(self) -> dict:
-        with urlopen(self.get_url('getUpdates')) as response:
+    def get_updates(
+            self,
+            limit: int = 100,
+            allowed_updates: List[str] = None,
+            timeout: int = 0,
+            offset: int = 0
+    ) -> dict:
+        if not allowed_updates:
+            allowed_updates = []
+
+        post_data = {
+            'limit': limit,
+            'allowed_updates': allowed_updates,
+            'timeout': timeout,
+            'offset': offset,
+        }
+
+        post_data_encoded = json.dumps(post_data).encode('ascii')
+
+        request = Request(
+            self.get_url('getUpdates'),
+            post_data_encoded,
+            {'Content-Type': 'application/json'},
+        )
+
+        with urlopen(request) as response:
             return json.load(response)
 
     def send_message(self, text: str) -> HTTPResponse:
@@ -79,8 +103,11 @@ if __name__ == '__main__':
     if not bot.chat_id:
         sec_code = str(randbelow(10000)).zfill(4)
         input(f'Send the code "{sec_code}" to your bot via Telegram message and then press Enter.')
-        updates: dict = bot.get_updates()
-        # FIXME: This throws IndexError after the first attempt after creating a new chat.
+        updates: dict = bot.get_updates(
+            limit=1,
+            allowed_updates=['message'],
+            offset=-1
+        )
         sec_code_from_update = updates['result'][-1]['message']['text']
         if sec_code_from_update == sec_code:
             bot.chat_id = updates['result'][-1]['message']['chat']['id']
