@@ -6,6 +6,7 @@ import argparse
 from typing import Dict, List
 from secrets import randbelow
 from http.client import HTTPResponse
+import re
 
 from utils import load_env_file, yes_or_no
 from exceptions import ChatIdMissingError
@@ -89,18 +90,24 @@ if __name__ == '__main__':
         'token',
         help='your Telegram bot\'s unique token https://core.telegram.org/bots/api#authorizing-your-bot'
     )
-    # TODO: Make it possible to overwrite an existing (invalid) chat ID.
-    parser.add_argument(
+    chat_id_options = parser.add_mutually_exclusive_group()
+    chat_id_options.add_argument(
         '-c',
         '--chat-id',
-        help='the chat id you want your bot to send notifications to, if it exists'
+        help='the chat ID you want your bot to send notifications to, if it exists'
+    )
+    chat_id_options.add_argument(
+        '--new-chat-id',
+        help='force the creation of a new `TELEGRAM_CHAT_ID` variable if one already exists.'
+             ' This can be helpful if the existing chat ID is invalid.',
+        action='store_true'
     )
     args = parser.parse_args()
 
     bot = Bot(args.token, args.chat_id)
 
-    # Create a chat_id if it wasn't specified.
-    if not bot.chat_id:
+    # Create a chat_id if it wasn't specified or if the `--new-chat-id` option was used.
+    if not bot.chat_id or args.new_chat_id:
         sec_code = str(randbelow(10000)).zfill(4)
         input(f'Send the code "{sec_code}" to your bot via Telegram message and then press Enter.')
         updates: dict = bot.get_updates(
@@ -138,11 +145,23 @@ if __name__ == '__main__':
         is_updating_existing_file = False
         print('Existing .env file not found. Creating new .env file...')
 
-    with open('.env', 'a') as file:
+    with open('.env', 'r+') as file:
         if not env['TELEGRAM_TOKEN']:
             file.write(f'TELEGRAM_TOKEN={bot.token}\n')
         if not env['TELEGRAM_CHAT_ID']:
             file.write(f'TELEGRAM_CHAT_ID={bot.chat_id}\n')
+        else:
+            # Replace the existing TELGRAM_CHAT_ID in the file
+            old_content = file.read()
+            updated_content = re.sub(
+                r'(?!TELEGRAM_CHAT_ID=)\d+',
+                str(bot.chat_id),
+                old_content,
+                flags=re.MULTILINE
+            )
+            file.seek(0)
+            file.write(updated_content)
+            file.truncate()
 
     if is_updating_existing_file:
         print('Successfully updated .env file!')
