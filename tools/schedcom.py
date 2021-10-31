@@ -8,13 +8,8 @@ import subprocess
 import os
 from typing import Optional, Union
 
-from utils import load_env_file
+from utils import load_env_file, print_and_exit
 from ckcyberbot import Bot
-
-
-def create_bot():
-    env = load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
-    return Bot(env['TELEGRAM_TOKEN'], env['TELEGRAM_CHAT_ID'])
 
 
 def parse_args():
@@ -54,6 +49,19 @@ if __name__ == '__main__':
     args = parse_args()
 
     delay: Union[int, float] = 0
+
+    if args.notify:
+        env = {}
+        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+        try:
+            env = load_env_file(env_path)
+        except FileNotFoundError:
+            print_and_exit(f'Error: "{env_path}" not found')
+        try:
+            bot = Bot(env['TELEGRAM_TOKEN'], env['TELEGRAM_CHAT_ID'])
+        except KeyError:
+            print_and_exit('Error: .env file requires `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID`,'
+                           ' but at least one of them cannot be found')
 
     if args.at:
         at_str: str = args.at
@@ -111,11 +119,14 @@ if __name__ == '__main__':
         if args.notify:
             # Create the bot here so that there isn't an error if the
             # user isn't using `--notify` and  hasn't configured a `.env` file
-            bot = create_bot()
+
+            # `bot` has to be type `Bot` here, since `print_and_exit()` guards against `bot` being None.
+            # PyCharm's real-time type checker isn't smart enough to know this, so just ignore it.
+            # noinspection PyUnboundLocalVariable
             bot.send_message(fail_msg)
     else:
         success_msg = f'"{args.command}" executed successfully!'
         print(success_msg)
         if args.notify:
-            bot = create_bot()
+            # noinspection PyUnboundLocalVariable
             bot.send_message(success_msg)

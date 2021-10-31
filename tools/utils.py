@@ -1,4 +1,4 @@
-from typing import Literal, Dict
+from typing import Literal, Dict, NoReturn
 
 
 def load_env_file(filename: str) -> Dict[str, str]:
@@ -33,6 +33,12 @@ def yes_or_no(prompt: str, default: Literal['y', 'n'] = None):
             print("Please answer 'y' or 'n'.")
         else:
             return response.startswith('y')
+
+
+def print_and_exit(msg: str, exit_code: int = 1) -> NoReturn:
+    """Print a message and exit with the provided exit code."""
+    print(msg)
+    exit(exit_code)
 
 
 if __name__ == '__main__':

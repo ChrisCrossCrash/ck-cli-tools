@@ -8,6 +8,7 @@ from secrets import randbelow
 from http.client import HTTPResponse
 
 from utils import load_env_file, yes_or_no
+from exceptions import ChatIdMissingError
 
 
 # Telegram Bot API Documentation
@@ -31,7 +32,9 @@ class Bot:
             return json.load(response)
 
     def send_message(self, text: str) -> HTTPResponse:
-        # TODO: Make a custom exception for when `self.chat_id` is None.
+        if not self.chat_id:
+            raise ChatIdMissingError
+
         post_data = {
             'chat_id': self.chat_id,
             'text': text,
@@ -75,8 +78,9 @@ if __name__ == '__main__':
     # Create a chat_id if it wasn't specified.
     if not bot.chat_id:
         sec_code = str(randbelow(10000)).zfill(4)
-        input(f'Send the code "{sec_code}" to your bot via Telegram message and then press any key.')
+        input(f'Send the code "{sec_code}" to your bot via Telegram message and then press Enter.')
         updates: dict = bot.get_updates()
+        # FIXME: This throws IndexError after the first attempt after creating a new chat.
         sec_code_from_update = updates['result'][-1]['message']['text']
         if sec_code_from_update == sec_code:
             bot.chat_id = updates['result'][-1]['message']['chat']['id']
