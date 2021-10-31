@@ -9,7 +9,7 @@ import os
 from typing import Optional, Union
 
 from utils import load_env_file, print_and_exit
-from ckcyberbot import Bot
+from tools.ckcyberbot import Bot
 
 
 def parse_args():
@@ -110,11 +110,10 @@ if __name__ == '__main__':
         time.sleep(delay)
 
     print(f'executing...')
-    completed_process = subprocess.run(args.command, shell=True)
+    completed_process = subprocess.run(args.command, shell=True, capture_output=True)
 
-    # TODO: Display the output for the command in the Telegram message.
     if completed_process.returncode:
-        fail_msg = f'"{args.command}" did not run successfully.'
+        fail_msg = f'"{args.command}" did not run successfully.\n\n' + str(completed_process.stderr)
         print(fail_msg)
         if args.notify:
             # Create the bot here so that there isn't an error if the
@@ -125,7 +124,8 @@ if __name__ == '__main__':
             # noinspection PyUnboundLocalVariable
             bot.send_message(fail_msg)
     else:
-        success_msg = f'"{args.command}" executed successfully!'
+        # FIXME: completed_process.stdout contains escaped `\n` and other characters.
+        success_msg = f'"{args.command}" executed successfully!\n\n' + str(completed_process.stdout)
         print(success_msg)
         if args.notify:
             # noinspection PyUnboundLocalVariable

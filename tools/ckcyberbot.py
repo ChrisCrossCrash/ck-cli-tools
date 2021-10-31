@@ -7,9 +7,10 @@ from typing import Dict, List
 from secrets import randbelow
 from http.client import HTTPResponse
 import re
+import os
 
-from utils import load_env_file, yes_or_no
-from exceptions import ChatIdMissingError
+from tools.utils import load_env_file, yes_or_no
+from tools.exceptions import ChatIdMissingError
 
 
 # Telegram Bot API Documentation
@@ -106,7 +107,7 @@ if __name__ == '__main__':
 
     bot = Bot(args.token, args.chat_id)
 
-    # Create a chat_id if it wasn't specified or if the `--new-chat-id` option was used.
+    # Assign bot.chat_id if it wasn't specified or if the `--new-chat-id` option was used.
     if not bot.chat_id or args.new_chat_id:
         sec_code = str(randbelow(10000)).zfill(4)
         input(f'Send the code "{sec_code}" to your bot via Telegram message and then press Enter.')
@@ -126,7 +127,7 @@ if __name__ == '__main__':
     test_msg_code = str(randbelow(10000)).zfill(4)
     test_msg = f'Test messsage: {test_msg_code}'
     bot.send_message(test_msg)
-    sent_code = yes_or_no(f'Did the bot just send you the code {test_msg_code}')
+    sent_code = yes_or_no(f'Did the bot just send you the code {test_msg_code}', default='y')
 
     if not sent_code:
         print('Bot code didn\'t match. Exiting...')
@@ -144,14 +145,18 @@ if __name__ == '__main__':
     except FileNotFoundError:
         is_updating_existing_file = False
         print('Existing .env file not found. Creating new .env file...')
+        with open('.env', 'w'):
+            pass
 
     with open('.env', 'r+') as file:
+        file.seek(0, os.SEEK_END)
         if not env['TELEGRAM_TOKEN']:
             file.write(f'TELEGRAM_TOKEN={bot.token}\n')
         if not env['TELEGRAM_CHAT_ID']:
             file.write(f'TELEGRAM_CHAT_ID={bot.chat_id}\n')
         else:
             # Replace the existing TELGRAM_CHAT_ID in the file
+            file.seek(0)
             old_content = file.read()
             updated_content = re.sub(
                 r'(?!TELEGRAM_CHAT_ID=)\d+',

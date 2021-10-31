@@ -1,4 +1,4 @@
-from typing import Literal, Dict, NoReturn
+from typing import Literal, Dict, NoReturn, Callable, Any
 
 
 def load_env_file(filename: str) -> Dict[str, str]:
@@ -18,8 +18,16 @@ def load_env_file(filename: str) -> Dict[str, str]:
     return result
 
 
-def yes_or_no(prompt: str, default: Literal['y', 'n'] = None):
+def yes_or_no(
+        prompt: str,
+        default: Literal['y', 'n'] = None,
+        input_func: Callable[[str], str] = input,
+        output_func: Callable[[str], Any] = print
+):
     """Ask a yes/no question that returns True for "y/yes" and False for "n/no"."""
+    if default not in ('y', 'n', None):
+        raise ValueError("'The default value must be 'y' or 'n'.")
+
     while True:
         valid = ['y', 'n', 'yes', 'no']
         if not default:
@@ -28,9 +36,11 @@ def yes_or_no(prompt: str, default: Literal['y', 'n'] = None):
             options_str = ' [Y/n] '
         else:
             options_str = ' [y/N] '
-        response = input(prompt + options_str).strip().lower()
+        response = input_func(prompt + options_str).strip().lower()
         if response not in valid:
-            print("Please answer 'y' or 'n'.")
+            if default and response == '':
+                return default == 'y'
+            output_func("Please answer 'y' or 'n'.")
         else:
             return response.startswith('y')
 
