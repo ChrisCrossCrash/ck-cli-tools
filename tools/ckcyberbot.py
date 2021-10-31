@@ -117,7 +117,7 @@ if __name__ == '__main__':
         )
         sec_code_from_update = updates['result'][-1]['message']['text']
         if sec_code_from_update == sec_code:
-            bot.chat_id = updates['result'][-1]['message']['chat']['id']
+            bot.chat_id = str(updates['result'][-1]['message']['chat']['id'])
         else:
             print('The security code didn\'t match.')
             exit(1)
@@ -155,7 +155,7 @@ if __name__ == '__main__':
             old_content = file.read()
             updated_content = re.sub(
                 r'(?!TELEGRAM_CHAT_ID=)\d+',
-                str(bot.chat_id),
+                bot.chat_id,
                 old_content,
                 flags=re.MULTILINE
             )
