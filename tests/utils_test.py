@@ -1,8 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 from typing import cast
 
-from tools.utils import yes_or_no, load_env_file
+from tools.utils import yes_or_no, load_env_file, using_dir
 
 
 class ExpectedTestError(Exception):
@@ -159,6 +160,17 @@ class TestLoadEnvFile(unittest.TestCase):
     @patch('builtins.open', new_callable=mock_open, read_data=valid_env_str_data.replace('\n', '\n \t\n'))
     def test_ignores_whitespace_line(self, _: MagicMock):
         self.assertEqual(load_env_file('.env'), self.valid_env_dict_data)
+
+
+class UsingDirTests(unittest.TestCase):
+    # If you make `test_` methods static, they won't work.
+    # noinspection PyMethodMayBeStatic
+    def test_calls_os_chdir_correctly(self):
+        with patch('os.chdir') as mock_chdir:
+            start_dir = os.getcwd()
+            with using_dir('/some/other/dir'):
+                mock_chdir.assert_called_with('/some/other/dir')
+            mock_chdir.assert_called_with(start_dir)
 
 
 if __name__ == '__main__':
