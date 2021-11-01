@@ -1,100 +1,121 @@
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
-from typing import Callable, cast
+from typing import cast
 
 from tools.utils import yes_or_no, load_env_file
 
 
-class TestError(Exception):
+class ExpectedTestError(Exception):
     """A custom exception made for use with assertRaises."""
     pass
 
 
-def make_mock_input(return_val: str, throw_return_val=False) -> Callable[[str], str]:
-    """Return a mock input that will always have the return value of `return_val`."""
-    def mock_input(prompt: str):
-        if throw_return_val:
-            raise TestError(prompt)
-        return return_val
-    return mock_input
-
-
-def mock_print(txt: str):
-    raise TestError(txt)
-
-
 class TestWithoutDefault(unittest.TestCase):
+    @patch('builtins.input', lambda *args: 'y')
     def test_yes_without_default(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input('y')))
+        self.assertTrue(yes_or_no('Sky is blue?'))
 
+    @patch('builtins.input', lambda *args: 'n')
     def test_no_without_default(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input('n')))
+        self.assertFalse(yes_or_no('Sky is blue?'))
 
+    @patch('builtins.input', lambda *args: 'maybe?')
     def test_invalid_without_default(self):
-        with self.assertRaisesRegex(TestError, "Please answer 'y' or 'n'."):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('maybe?'), output_func=mock_print)
+        with patch('builtins.print') as mock_print:
+            mock_print.side_effect = ExpectedTestError
+            with self.assertRaises(ExpectedTestError):
+                yes_or_no('Sky is blue?')
+            mock_print.assert_called_with("Please answer 'y' or 'n'.")
 
+    @patch('builtins.input', lambda *args: '')
     def test_empty_without_default(self):
-        with self.assertRaisesRegex(TestError, "Please answer 'y' or 'n'."):
-            yes_or_no('Sky is blue?', input_func=make_mock_input(''), output_func=mock_print)
+        with patch('builtins.print') as mock_print:
+            mock_print.side_effect = ExpectedTestError
+            with self.assertRaises(ExpectedTestError):
+                yes_or_no('Sky is blue?')
+            mock_print.assert_called_with("Please answer 'y' or 'n'.")
 
 
 class TestWithDefaultYes(unittest.TestCase):
+    @patch('builtins.input', lambda *args: 'y')
     def test_yes_with_default_yes(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input('y'), default='y'))
+        self.assertTrue(yes_or_no('Sky is blue?', default='y'))
 
+    @patch('builtins.input', lambda *args: 'n')
     def test_no_with_default_yes(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input('n'), default='y'))
+        self.assertFalse(yes_or_no('Sky is blue?', default='y'))
 
+    @patch('builtins.input', lambda *args: 'maybe?')
     def test_invalid_with_default_yes(self):
-        with self.assertRaisesRegex(TestError, "Please answer 'y' or 'n'."):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('maybe?'), output_func=mock_print, default='y')
+        with patch('builtins.print') as mock_print:
+            mock_print.side_effect = ExpectedTestError
+            with self.assertRaises(ExpectedTestError):
+                yes_or_no('Sky is blue?', default='y')
+            mock_print.assert_called_with("Please answer 'y' or 'n'.")
 
+    @patch('builtins.input', lambda *args: '')
     def test_empty_with_default_yes(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input(''), default='y'))
+        self.assertTrue(yes_or_no('Sky is blue?', default='y'))
 
 
 class TestWithDefaultNo(unittest.TestCase):
+    @patch('builtins.input', lambda *args: 'y')
     def test_yes_with_default_no(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input('y'), default='n'))
+        self.assertTrue(yes_or_no('Sky is blue?', default='n'))
 
+    @patch('builtins.input', lambda *args: 'n')
     def test_no_with_default_no(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input('n'), default='n'))
+        self.assertFalse(yes_or_no('Sky is blue?', default='n'))
 
+    @patch('builtins.input', lambda *args: 'maybe?')
     def test_invalid_with_default_no(self):
-        with self.assertRaisesRegex(TestError, "Please answer 'y' or 'n'."):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('maybe?'), output_func=mock_print, default='n')
+        with patch('builtins.print') as mock_print:
+            mock_print.side_effect = ExpectedTestError
+            with self.assertRaises(ExpectedTestError):
+                yes_or_no('Sky is blue?', default='n')
+            mock_print.assert_called_with("Please answer 'y' or 'n'.")
 
+    @patch('builtins.input', lambda *args: '')
     def test_empty_with_default_no(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input(''), default='n'))
+        self.assertFalse(yes_or_no('Sky is blue?', default='n'))
 
 
 class TestDefaultCapitalization(unittest.TestCase):
     def test_no_default_no_capitalizaion(self):
-        with self.assertRaisesRegex(TestError, r'\[y/n\]'):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('y', throw_return_val=True))
+        with patch('builtins.input') as mock_input:
+            mock_input.return_value = 'y'
+            yes_or_no('Sky is blue?')
+            mock_input.assert_called_with('Sky is blue? [y/n] ')
 
     def test_default_y_capital_y(self):
-        with self.assertRaisesRegex(TestError, r'\[Y/n\]'):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('y', throw_return_val=True), default='y')
+        with patch('builtins.input') as mock_input:
+            mock_input.return_value = 'y'
+            yes_or_no('Sky is blue?', default='y')
+            mock_input.assert_called_with('Sky is blue? [Y/n] ')
 
     def test_default_n_capital_n(self):
-        with self.assertRaisesRegex(TestError, r'\[y/N\]'):
-            yes_or_no('Sky is blue?', input_func=make_mock_input('y', throw_return_val=True), default='n')
+        with patch('builtins.input') as mock_input:
+            mock_input.return_value = 'y'
+            yes_or_no('Sky is blue?', default='n')
+            mock_input.assert_called_with('Sky is blue? [y/N] ')
 
 
 class TestInputValidity(unittest.TestCase):
+    @patch('builtins.input', lambda *args: 'Y')
     def test_capital_y_is_valid(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input('Y')))
+        self.assertTrue(yes_or_no('Sky is blue?'))
 
+    @patch('builtins.input', lambda *args: 'N')
     def test_capital_n_is_valid(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input('N')))
+        self.assertFalse(yes_or_no('Sky is blue?'))
 
+    @patch('builtins.input', lambda *args: 'YES')
     def test_YES_is_valid(self):
-        self.assertTrue(yes_or_no('Sky is blue?', input_func=make_mock_input('YES')))
+        self.assertTrue(yes_or_no('Sky is blue?'))
 
+    @patch('builtins.input', lambda *args: 'NO')
     def test_NO_is_valid(self):
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=make_mock_input('NO')))
+        self.assertFalse(yes_or_no('Sky is blue?'))
 
 
 class TestOther(unittest.TestCase):
@@ -106,13 +127,14 @@ class TestOther(unittest.TestCase):
     def test_valid_input_after_invalid(self):
         # Make a generator the will first yield `maybe?` (invalid), then `n` (valid)
         gen = (i for i in ('maybe?', 'n'))
-        with self.assertRaisesRegex(TestError, "Please answer 'y' or 'n'."):
-            # The first time `gen.__next__()` is called will yield `maybe?` which will tell
-            # the `output_func` to print "Please answer 'y' or 'n'."
-            yes_or_no('Sky is blue?', input_func=lambda _: gen.__next__(), output_func=mock_print)
-        # The second time `gen.__next__()` is called will yield `n`,
-        # which will cause `yes_or_no()` to return False.
-        self.assertFalse(yes_or_no('Sky is blue?', input_func=lambda _: gen.__next__()))
+        with patch('builtins.input', lambda *args: next(gen)):
+            # The first time `next(gen)` is called will yield `maybe?` which will tell
+            # the `mock_print` to print "Please answer 'y' or 'n'."
+            with patch('builtins.print') as mock_print:
+                # Should return false, since the first valid response is `n`
+                self.assertFalse(yes_or_no('Sky is blue?'))
+                # This should have been called after the invalid `maybe?` response
+                mock_print.assert_called_with("Please answer 'y' or 'n'.")
 
 
 class TestLoadEnvFile(unittest.TestCase):
