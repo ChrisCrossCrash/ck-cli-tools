@@ -16,7 +16,6 @@ def make_mock_input(return_val: str, throw_return_val=False) -> Callable[[str], 
         if throw_return_val:
             raise TestError(prompt)
         return return_val
-
     return mock_input
 
 

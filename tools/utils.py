@@ -1,4 +1,6 @@
+import os
 from typing import Literal, Dict, NoReturn, Callable, Any
+from contextlib import contextmanager
 
 
 def load_env_file(filename: str) -> Dict[str, str]:
@@ -7,7 +9,7 @@ def load_env_file(filename: str) -> Dict[str, str]:
     with open(filename) as f:
         for line in f.readlines():
             if line.startswith('#') or not line.strip():
-                # Skip this line. It's a comment or an empty string.
+                # Skip this line. It's a comment or just whitespace.
                 continue
             # Remove the end of line character
             line = line.rstrip()
@@ -49,6 +51,17 @@ def print_and_exit(msg: str, exit_code: int = 1) -> NoReturn:
     """Print a message and exit with the provided exit code."""
     print(msg)
     exit(exit_code)
+
+
+@contextmanager
+def using_dir(dir_new: str) -> None:
+    """Temporarily change the working directory within a context manager."""
+    dir_start = os.getcwd()
+    try:
+        os.chdir(dir_new)
+        yield
+    finally:
+        os.chdir(dir_start)
 
 
 if __name__ == '__main__':
